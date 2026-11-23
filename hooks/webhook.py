@@ -27,13 +27,13 @@ async def weather_webhook(payload: dict):
         "city": payload["city"]
     }
 
-user_data = {"login": "Vladimir", "password": "123654"}
 
+users_db = {"Vladimir": "123654"}
 
 @app.post("/login")
 async def user_login(payload: dict):
-    username = payload["username"]
-    password = payload["password"]
+    username = payload.get("username")
+    password = payload.get("password")
 
     if not username or not password:
         raise HTTPException(
@@ -41,14 +41,25 @@ async def user_login(payload: dict):
             detail="В данных нет нужных полей"
         )
 
-    if users_db.get(username) != password:
-        query = select(Users).where(username=username)
-        db.execute(query).fetchone()
+    # if users_db.get(username) != password:
+    #     query = select(Users).where(Users.username==username)
+    #     db.execute(query).fetchone()
 
-        async with aiosqlite.connect(DB_NAME) as db:
-            cursor = await db.execute(
-                "SELECT password FROM users WHERE username=?",
-                (username,)
-            )
-            result = await cursor.fetchone()
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute(
+            "SELECT password FROM users WHERE username=?",
+            (username,)
+        )
+        result = await cursor.fetchone()
+
+    if not result or result[0] != password:
+        raise HTTPException(
+            status_code=401,
+            detail="Неверный логин или пароль"
+        )
+
+    return {
+             "status": 200,
+            "username": username
+        }
         

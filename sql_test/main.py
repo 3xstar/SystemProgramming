@@ -5,6 +5,7 @@ users
 id  name  age   status
 1   Ivan  54   active
 """
+
 async def add_user(name: str, age: int):
     async with aiosqlite.connect("test.db") as db:
         await db.execute(
